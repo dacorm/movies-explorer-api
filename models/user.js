@@ -29,7 +29,8 @@ const userSchema = new mongoose.Schema({
 
 userSchema.statics.checkUser = async function (email, password) {
   try {
-    const user = await this.findOne({ email }).select('+password');
+    const user = await this.findOne({ email })
+      .select('+password');
     if (!user) {
       return Promise.reject(new UnauthorizedError('Неверная почта или пароль'));
     }
@@ -39,9 +40,7 @@ userSchema.statics.checkUser = async function (email, password) {
       return Promise.reject(new UnauthorizedError('Неверная почта или пароль'));
     }
 
-    if (user && match) {
-      return user;
-    }
+    return user;
   } catch (e) {
     console.log(e);
   }

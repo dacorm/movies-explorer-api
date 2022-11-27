@@ -7,7 +7,6 @@ const {
   INCORRECT_DATA_ERROR_CODE, JWT_SECRET,
 } = require('../utils/constants');
 const BadRequestError = require('../utils/errors/badRequestError');
-const NotFoundError = require('../utils/errors/notFoundError');
 const ConflictError = require('../utils/errors/conflictError');
 
 module.exports.createUser = async (req, res, next) => {
@@ -41,7 +40,9 @@ module.exports.login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.checkUser(email, password);
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-    res.send(token);
+    res.send({
+      token,
+    });
   } catch (e) {
     next(e);
   }
@@ -78,7 +79,7 @@ module.exports.updateUser = async (req, res, next) => {
 module.exports.getMe = async (req, res, next) => {
   try {
     const { id } = req.user._id;
-    const user = await User.findOne(id);
+    const user = await User.findById(id);
 
     if (!user) {
       return res.status(NOT_FOUND_ERROR_CODE).json({
