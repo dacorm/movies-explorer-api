@@ -21,8 +21,7 @@ module.exports.getMovies = async (req, res, next) => {
 
 module.exports.createMovie = async (req, res, next) => {
   try {
-    const { name, link } = req.body;
-    const movie = await Movie.create({ name, link, owner: req.user._id });
+    const movie = await Movie.create({ ...req.body, owner: req.user._id });
 
     res.send({
       message: 'Фильм успешно создан',
