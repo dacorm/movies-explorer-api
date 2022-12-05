@@ -11,7 +11,7 @@
   },
   "rules": {
     "no-unused-vars": "warn",
-    "consistent-return": "off",
+    "consistent-return": "warn",
     "no-console": "off",
     "no-underscore-dangle": [
       "error",

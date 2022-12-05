@@ -2,7 +2,7 @@ const Movie = require('../models/movie');
 const {
   NOT_FOUND_ERROR_CODE,
   DEFAULT_ERROR_CODE,
-  INCORRECT_DATA_ERROR_CODE,
+  INCORRECT_DATA_ERROR_CODE, MOVIE_NOT_FOUND, FORBIDDEN_DELETE_MOVIE, INCORRECT_DATA,
 } = require('../utils/constants');
 const BadRequestError = require('../utils/errors/badRequestError');
 const NotFoundError = require('../utils/errors/notFoundError');
@@ -12,7 +12,7 @@ const USER_REF = [{ path: 'likes', model: 'user' }];
 
 module.exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find({});
+    const movies = await Movie.find({ owner: req.user._id });
     res.send(movies);
   } catch (e) {
     next(e);
@@ -39,10 +39,10 @@ module.exports.deleteMovie = async (req, res, next) => {
   try {
     const movie = await Movie.findById(req.params._id);
     if (!movie) {
-      return new NotFoundError('Фильм не найден');
+      throw new NotFoundError(MOVIE_NOT_FOUND);
     }
     if (movie.owner.toString() !== req.user._id) {
-      return new ForbiddenError('Нельзя удалять чужие фильмы');
+      throw new ForbiddenError(FORBIDDEN_DELETE_MOVIE);
     }
     const movieDelete = await Movie.findByIdAndRemove(req.params._id);
     res.send({
@@ -50,7 +50,7 @@ module.exports.deleteMovie = async (req, res, next) => {
     });
   } catch (e) {
     if (e.name === 'CastError') {
-      next(new BadRequestError('Переданы не валидные данные'));
+      next(new BadRequestError(INCORRECT_DATA));
     } else {
       next(e);
     }

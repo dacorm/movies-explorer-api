@@ -3,11 +3,11 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   NOT_FOUND_ERROR_CODE,
-  DEFAULT_ERROR_CODE,
-  INCORRECT_DATA_ERROR_CODE, JWT_SECRET,
+  EMAIL_ALREADY_EXISTS, REGISTER_INCORRECT_DATA, INCORRECT_DATA,
 } = require('../utils/constants');
 const BadRequestError = require('../utils/errors/badRequestError');
 const ConflictError = require('../utils/errors/conflictError');
+const {getJWT} = require("../utils/getJWT");
 
 module.exports.createUser = async (req, res, next) => {
   try {
@@ -26,9 +26,9 @@ module.exports.createUser = async (req, res, next) => {
     });
   } catch (e) {
     if (e.code === 11000) {
-      next(new ConflictError('Пользователь с данным email уже зарегистрирован'));
+      next(new ConflictError(EMAIL_ALREADY_EXISTS));
     } else if (e.name === 'CastError') {
-      next(new BadRequestError('Переданы не валидные данные'));
+      next(new BadRequestError(REGISTER_INCORRECT_DATA));
     } else {
       next(e);
     }
@@ -39,7 +39,8 @@ module.exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.checkUser(email, password);
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    const key = getJWT();
+    const token = jwt.sign({ _id: user._id }, key, { expiresIn: '7d' });
     res.send({
       token,
     });
@@ -78,8 +79,8 @@ module.exports.updateUser = async (req, res, next) => {
 
 module.exports.getMe = async (req, res, next) => {
   try {
-    const { id } = req.user._id;
-    const user = await User.findById(id);
+    const id = req.user._id;
+    const user = await User.findById({ _id: id });
 
     if (!user) {
       return res.status(NOT_FOUND_ERROR_CODE).json({
@@ -90,7 +91,7 @@ module.exports.getMe = async (req, res, next) => {
     res.send(user);
   } catch (e) {
     if (e.name === 'CastError') {
-      next(new BadRequestError('Переданы не валидные данные'));
+      next(new BadRequestError(INCORRECT_DATA));
     } else {
       next(e);
     }

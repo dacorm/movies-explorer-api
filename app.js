@@ -13,7 +13,7 @@ const { PORT_CFG, DB_CFG } = require('./utils/config');
 
 const app = express();
 app.use(bodyParser.json());
-mongoose.connect(DB_CFG);
+mongoose.connect(DB_CFG, { family: 4 });
 app.use(requestLogger);
 app.use(rateLimiter);
 app.use(helmet());
